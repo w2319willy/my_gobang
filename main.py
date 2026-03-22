@@ -1,6 +1,5 @@
-def main():
-    print("Hello from my-gobang!")
-
+from src.gobang.game import Game
 
 if __name__ == "__main__":
-    main()
+    game = Game()
+    game.run()
