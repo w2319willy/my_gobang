@@ -30,11 +30,13 @@
 ## 运行方法
 安装好依赖后运行`gobang\main.py`
 建议使用uv搭建虚拟环境运行
-> uv sync #安装依赖
-> uv run mian.py #运行游戏
+```bash
+uv sync #安装依赖
+uv run mian.py #运行游戏
+```
 
 ## 项目结构
-'''text
+```text
 my_gobang/
 ├── src/                     # 源代码目录
 │   ├── gobang/              # 核心游戏模块
@@ -48,7 +50,7 @@ my_gobang/
 ├── main.py                  # 项目启动入口
 ├── pyproject.toml           # 项目配置
 └── README.md                # 项目说明
-'''
+```
 
 ## 说明
 本项目还未完成，后续还会有改动  
