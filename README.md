@@ -43,12 +43,12 @@
 - pygame>=2.6.1
 
 ## 运行方法
-安装好依赖后运行`gobang\main.py`
+安装好依赖后运行`main.py`
 
 建议使用uv搭建虚拟环境运行
 ```bash
 uv sync #安装依赖
-uv run mian.py #运行游戏
+uv run main.py #运行游戏
 ```
 
 ## 项目结构
@@ -65,6 +65,7 @@ my_gobang/
 │       └── test_board.py    # 棋盘测试
 ├── .gitignore               # Git 忽略配置
 ├── main.py                  # 项目启动入口
+├── my_gobang.spec           # PyInstaller 打包配置文件
 ├── pyproject.toml           # 依赖与项目配置
 ├── uv.lock                  # uv 锁定依赖文件
 └── README.md                # 项目说明
