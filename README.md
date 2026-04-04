@@ -51,6 +51,39 @@ uv sync #安装依赖
 uv run main.py #运行游戏
 ```
 
+或者直接运行文件```my_gobang.exe```
+
+## 打包说明
+推荐借助uv使用PyInstaller在Windows下打包。
+
+1. 安装打包依赖
+```bash
+uv add --dev pyinstaller
+```
+
+2. 打包为目录版（推荐，稳定且便于排错）
+```bash
+uv run python -m PyInstaller --noconfirm --clean --windowed --name my_gobang main.py
+```
+
+3. 目录版产物位置
+- `dist/my_gobang/my_gobang.exe`
+
+4. 打包为单文件版（可选）
+```bash
+uv run python -m PyInstaller --noconfirm --clean --onefile --windowed --name my_gobang main.py
+```
+
+5. 如果打包后无法运行，先用控制台版查看错误
+```bash
+uv run python -m PyInstaller --noconfirm --clean --console --name my_gobang_debug main.py
+dist/my_gobang_debug/my_gobang_debug.exe
+```
+
+注意：
+- 建议使用 `uv run python -m PyInstaller ...`，不要直接用 `uv run pyinstaller ...`。
+- 前者可以确保使用项目虚拟环境，避免出现 `No module named 'pygame'`。
+
 ## 项目结构
 ```text
 my_gobang/
@@ -65,6 +98,7 @@ my_gobang/
 │       └── test_board.py    # 棋盘测试
 ├── .gitignore               # Git 忽略配置
 ├── main.py                  # 项目启动入口
+├── my_gobang.exe            # 打包后的可执行文件
 ├── my_gobang.spec           # PyInstaller 打包配置文件
 ├── pyproject.toml           # 依赖与项目配置
 ├── uv.lock                  # uv 锁定依赖文件
