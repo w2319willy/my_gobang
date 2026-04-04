@@ -3,6 +3,25 @@ class GameLogic:
         self.size = size
         # 0:空, 1:黑, 2:白
         self.board = [[0 for _ in range(size)] for _ in range(size)]
+        self.move_history = []
+
+    def place_stone(self, row, col, player):
+        if not (0 <= row < self.size and 0 <= col < self.size):
+            return False
+        if self.board[row][col] != 0:
+            return False
+
+        self.board[row][col] = player
+        self.move_history.append((row, col, player))
+        return True
+
+    def undo_last_move(self):
+        if not self.move_history:
+            return None
+
+        row, col, player = self.move_history.pop()
+        self.board[row][col] = 0
+        return row, col, player
 
     def check_win(self, row, col, player):
         # 这里写判断输赢的算法

@@ -10,32 +10,54 @@ class BoardUI:
 
         self.board_width = 14 * cell_size
         self.board_height = 14 * cell_size
+        self.board_rect = pygame.Rect(0, 0, self.board_width, self.board_height)
 
-        # 计算棋盘左上角的起始坐标 (x, y)，使其居中
-        self.start_x = (self.screen_width - self.board_width) // 2
+        # 游戏内布局：左侧棋盘，右侧操作区
+        self.board_margin_x = 20
+        self.panel_gap = 20
+        self.panel_width = 280
+        self.start_x = self.board_margin_x
         self.start_y = (self.screen_height - self.board_height) // 2
+        self.panel_rect = pygame.Rect(
+            self.start_x + self.board_width + self.panel_gap,
+            20,
+            self.panel_width,
+            self.screen_height - 40,
+        )
 
-        self.font_large = pygame.font.SysFont('simhei', 72) # 大号字体用于主菜单标题
+        self.font_large = pygame.font.SysFont('simhei', 84) # 大号字体用于主菜单标题
         self.font_medium = pygame.font.SysFont('simhei', 48) # 中号字体用于小标题及主菜单按钮
         self.font_small = pygame.font.SysFont('simhei', 36) # 小号字体用于小按钮
+        self.font_panel = pygame.font.SysFont('simhei', 28)
         
-        #胜利界面
-        self.restart_btn_rect = pygame.Rect(250, 400, 200, 50)
-        self.win_quit_btn_rect = pygame.Rect(250, 500, 200, 50)
+        # 游戏内操作按钮（放在右侧面板）
+        btn_w = self.panel_width - 40
+        btn_h = 50
+        btn_x = self.panel_rect.x + 20
+        btn_top = self.panel_rect.y + 182
+        btn_gap = 12
+        self.menu_btn_rect = pygame.Rect(btn_x, btn_top, btn_w, btn_h)
+        self.undo_btn_rect = pygame.Rect(btn_x, btn_top + (btn_h + btn_gap) * 1, btn_w, btn_h)
+        self.restart_btn_rect = pygame.Rect(btn_x, btn_top + (btn_h + btn_gap) * 2, btn_w, btn_h)
+        self.win_quit_btn_rect = pygame.Rect(btn_x, btn_top + (btn_h + btn_gap) * 3, btn_w, btn_h)
 
-        #主菜单
+        # 主菜单
         btn_width, btn_height = 250, 60
-        #开始按钮
-        self.start_btn_rect = pygame.Rect(
+        self.pvp_btn_rect = pygame.Rect(
             (self.screen_width - btn_width) // 2, 
-            self.screen_height // 2 - 40, 
+            self.screen_height // 2 - 80, 
             btn_width, 
             btn_height
         )
-        # 退出按钮
+        self.pve_btn_rect = pygame.Rect(
+            (self.screen_width - btn_width) // 2,
+            self.screen_height // 2,
+            btn_width,
+            btn_height,
+        )
         self.quit_btn_rect = pygame.Rect(
             (self.screen_width - btn_width) // 2, 
-            self.screen_height // 2 + 40, 
+            self.screen_height // 2 + 80, 
             btn_width, 
             btn_height
         )
@@ -46,11 +68,12 @@ class BoardUI:
         # 游戏标题
         title_text = "五子棋"
         title_surface = self.font_large.render(title_text, True, (0, 0, 0))
-        title_rect = title_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 3))
+        title_rect = title_surface.get_rect(center=(self.screen_width // 2, self.screen_height // 4 - 10))
         self.screen.blit(title_surface, title_rect)
 
         # 绘制按钮
-        self.draw_button(self.start_btn_rect, "开始游戏", self.start_btn_rect.collidepoint(pygame.mouse.get_pos()), 1)
+        self.draw_button(self.pvp_btn_rect, "玩家对战", self.pvp_btn_rect.collidepoint(pygame.mouse.get_pos()), 1)
+        self.draw_button(self.pve_btn_rect, "人机对战", self.pve_btn_rect.collidepoint(pygame.mouse.get_pos()), 1)
         self.draw_button(self.quit_btn_rect, "退出游戏", self.quit_btn_rect.collidepoint(pygame.mouse.get_pos()), 1)
 
     def draw_button(self, rect, text, hover, size):
@@ -84,6 +107,58 @@ class BoardUI:
             text_rect = text_surface.get_rect(center=rect.center)
             self.screen.blit(text_surface, text_rect)
 
+    def draw_game_panel(self, current_player, game_over, winner, vs_ai=False):
+        # 右侧操作区背景
+        pygame.draw.rect(self.screen, (205, 170, 120), self.panel_rect, border_radius=14)
+        pygame.draw.rect(self.screen, (100, 80, 50), self.panel_rect, 2, border_radius=14)
+
+        title_text = "人机对战" if vs_ai else "玩家对战"
+        title_surface = self.font_medium.render(title_text, True, (40, 30, 20))
+        title_rect = title_surface.get_rect(center=(self.panel_rect.centerx, self.panel_rect.y + 60))
+        self.screen.blit(title_surface, title_rect)
+
+        if game_over:
+            info_text = f"玩家{'1' if winner == 1 else '2'}获胜"
+        else:
+            info_text = f"当前: 玩家{current_player}"
+
+        info_surface = self.font_panel.render(info_text, True, (40, 30, 20))
+        info_rect = info_surface.get_rect(center=(self.panel_rect.centerx, self.panel_rect.y + 120))
+        self.screen.blit(info_surface, info_rect)
+
+        if game_over:
+            self.draw_victory_banner(winner, vs_ai)
+
+        mouse_pos = pygame.mouse.get_pos()
+        self.draw_button(self.menu_btn_rect, "返回主菜单", self.menu_btn_rect.collidepoint(mouse_pos), 2)
+        self.draw_button(self.undo_btn_rect, "悔棋", self.undo_btn_rect.collidepoint(mouse_pos), 2)
+        self.draw_button(self.restart_btn_rect, "重新开始", self.restart_btn_rect.collidepoint(mouse_pos), 2)
+        self.draw_button(self.win_quit_btn_rect, "退出游戏", self.win_quit_btn_rect.collidepoint(mouse_pos), 2)
+
+    def draw_victory_banner(self, winner, vs_ai=False):
+        overlay = pygame.Surface((self.board_width, self.board_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 55))
+        self.screen.blit(overlay, (self.start_x, self.start_y))
+
+        banner_rect = pygame.Rect(self.start_x + 20, self.start_y + 20, self.board_width - 40, 130)
+        pygame.draw.rect(self.screen, (255, 215, 0), banner_rect, border_radius=22)
+        pygame.draw.rect(self.screen, (180, 40, 40), banner_rect, 6, border_radius=22)
+
+        if vs_ai:
+            title = "你赢了！" if winner == 1 else "AI 获胜"
+            sub_title = "点击右侧按钮重新开始或退出"
+        else:
+            title = f"玩家{'1' if winner == 1 else '2'} 获胜！"
+            sub_title = "点击右侧按钮重新开始或退出"
+
+        title_surface = self.font_medium.render(title, True, (180, 30, 30) if winner == 1 else (40, 40, 40))
+        title_rect = title_surface.get_rect(center=(banner_rect.centerx, banner_rect.centery - 18))
+        self.screen.blit(title_surface, title_rect)
+
+        sub_surface = self.font_panel.render(sub_title, True, (70, 50, 20))
+        sub_rect = sub_surface.get_rect(center=(banner_rect.centerx, banner_rect.centery + 42))
+        self.screen.blit(sub_surface, sub_rect)
+
 
     def draw_grid(self):
         # 画15x15的线
@@ -107,44 +182,5 @@ class BoardUI:
         pygame.draw.circle(self.screen, color, (cx, cy), self.cell_size // 2 - 2)
 
     def draw_winner_ui(self, winner):
-        #绘制胜利界面和按钮
-        # 半透明遮罩
-        overlay = pygame.Surface((700, 700))
-        overlay.set_alpha(180) 
-        overlay.fill((0, 0, 0))
-        self.screen.blit(overlay, (0, 0))
-        
-        # 胜利文字
-        winner_text = f"Player {'1' if winner == 1 else '2'} 获胜!"
-        text_surface = self.font_medium.render(winner_text, True, (255, 215, 0))
-        text_rect = text_surface.get_rect(center=(350, 300))
-        self.screen.blit(text_surface, text_rect)
-        
-        '''
-        # 绘制按钮背景
-        # 检测鼠标是否悬停在按钮上，如果是，颜色变亮
-        mouse_pos = pygame.mouse.get_pos()
-        btn_color = (60, 60, 60) # 默认深灰
-        if self.restart_btn_rect.collidepoint(mouse_pos) or self.win_quit_btn_rect.collidepoint(mouse_pos):
-            btn_color = (100, 100, 100) # 悬停亮灰
-            
-        pygame.draw.rect(self.screen, btn_color, self.restart_btn_rect, border_radius=10)
-        pygame.draw.rect(self.screen, (200, 200, 200), self.restart_btn_rect, 2, border_radius=10)
-        pygame.draw.rect(self.screen, btn_color, self.win_quit_btn_rect, border_radius=10)
-        pygame.draw.rect(self.screen, (200, 200, 200), self.win_quit_btn_rect, 2, border_radius=10)
-
-        
-        # 绘制按钮文字
-        btn_text_1 = "重新开始"
-        btn_surface_1 = self.font_small.render(btn_text_1, True, (255, 255, 255))
-        btn_text_rect_1 = btn_surface_1.get_rect(center=self.restart_btn_rect.center)
-        self.screen.blit(btn_surface_1, btn_text_rect_1)
-
-        btn_text_2 = "退出游戏"
-        btn_surface_2 = self.font_small.render(btn_text_2, True, (255, 255, 255))
-        btn_text_rect_2 = btn_surface_2.get_rect(center=self.win_quit_btn_rect.center)
-        self.screen.blit(btn_surface_2, btn_text_rect_2)
-        '''
-        #绘制按钮
-        self.draw_button(self.restart_btn_rect, "重新开始", self.restart_btn_rect.collidepoint(pygame.mouse.get_pos()), 2)
-        self.draw_button(self.win_quit_btn_rect, "退出游戏", self.win_quit_btn_rect.collidepoint(pygame.mouse.get_pos()), 2)
+        # 保留兼容接口：当前胜负信息由右侧面板显示
+        pass
