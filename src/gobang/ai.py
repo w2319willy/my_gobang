@@ -13,15 +13,20 @@ class GobangAI:
 		if winning_move is not None:
 			return winning_move
 
-		# 对方出现三连时，优先堵住其中一端，避免对手轻松冲成四连或五连。
-		open_three_block = self.find_open_three_block_move(board, opponent)
-		if open_three_block is not None:
-			return open_three_block
-
 		# 对手有直接赢棋点先堵
 		block_move = self.find_winning_move(board, opponent)
 		if block_move is not None:
 			return block_move
+
+		# 中间空一格即可形成4连/5连时，优先围堵该空点。
+		split_threat_block = self.find_split_threat_block_move(board, opponent)
+		if split_threat_block is not None:
+			return split_threat_block
+
+		# 对方出现三连时，优先堵住其中一端，避免对手轻松冲成四连或五连。
+		open_three_block = self.find_open_three_block_move(board, opponent)
+		if open_three_block is not None:
+			return open_three_block
 
 		# 否则在候选点里做评分（靠近中心 + 邻近已有棋子）并选最高分
 		candidates = self.get_candidate_moves(board)
@@ -75,6 +80,48 @@ class GobangAI:
 						return self.choose_better_block_end(board, open_end_1, open_end_2)
 		return None
 
+	def find_split_threat_block_move(self, board, player):
+		# 若某空位两侧都有对手棋子，且补上后能形成4连或5连，则优先堵该点。
+		directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
+		threat_moves = []
+
+		for row, col in self.get_candidate_moves(board):
+			if board[row][col] != 0:
+				continue
+
+			threat_level = 0
+			for dr, dc in directions:
+				left_count = self.count_in_direction(board, row, col, -dr, -dc, player)
+				right_count = self.count_in_direction(board, row, col, dr, dc, player)
+
+				# “中间空一个”的关键：空位两边都存在同色连子。
+				if left_count > 0 and right_count > 0:
+					linked_count = left_count + right_count + 1
+					if linked_count >= 5:
+						threat_level = max(threat_level, 5)
+					elif linked_count >= 4:
+						threat_level = max(threat_level, 4)
+
+			if threat_level > 0:
+				threat_moves.append((threat_level, row, col))
+
+		if not threat_moves:
+			return None
+
+		# 先按威胁级别排序（5连威胁 > 4连威胁），同级优先中心区域。
+		best_level = max(item[0] for item in threat_moves)
+		best_moves = [(r, c) for level, r, c in threat_moves if level == best_level]
+
+		best_score = None
+		best_pos = None
+		for row, col in best_moves:
+			score = self.evaluate_position(board, row, col)
+			if best_score is None or score > best_score:
+				best_score = score
+				best_pos = (row, col)
+
+		return best_pos
+
 	def get_candidate_moves(self, board):
 		# 只考虑已有棋子周围的空位，减少无意义的全盘搜索。
 		stones = []
@@ -121,6 +168,15 @@ class GobangAI:
 
 	def in_bounds(self, row, col):
 		return 0 <= row < self.board_size and 0 <= col < self.board_size
+
+	def count_in_direction(self, board, row, col, dr, dc, player):
+		count = 0
+		r, c = row + dr, col + dc
+		while self.in_bounds(r, c) and board[r][c] == player:
+			count += 1
+			r += dr
+			c += dc
+		return count
 
 	def check_win(self, board, row, col, player):
 		# 检查横、竖、主对角线、副对角线四个方向是否连成五子。
