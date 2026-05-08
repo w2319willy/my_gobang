@@ -61,7 +61,7 @@ uv run main.py #运行游戏
 uv add --dev pyinstaller
 ```
 
-2. 打包为目录版（推荐，稳定且便于排错）
+2. 打包为目录版
 ```bash
 uv run python -m PyInstaller --noconfirm --clean --windowed --name my_gobang main.py
 ```
@@ -69,7 +69,7 @@ uv run python -m PyInstaller --noconfirm --clean --windowed --name my_gobang mai
 3. 目录版产物位置
 - `dist/my_gobang/my_gobang.exe`
 
-4. 打包为单文件版（可选）
+4. 打包为单文件版
 ```bash
 uv run python -m PyInstaller --noconfirm --clean --onefile --windowed --name my_gobang main.py
 ```

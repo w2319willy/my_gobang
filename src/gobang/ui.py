@@ -28,7 +28,7 @@ class BoardUI:
         self.font_large = pygame.font.SysFont('simhei', 84) # 大号字体用于主菜单标题
         self.font_medium = pygame.font.SysFont('simhei', 48) # 中号字体用于小标题及主菜单按钮
         self.font_small = pygame.font.SysFont('simhei', 36) # 小号字体用于小按钮
-        self.font_panel = pygame.font.SysFont('simhei', 28)
+        self.font_panel = pygame.font.SysFont('simhei', 28) # 面板信息字体
         
         # 游戏内操作按钮（放在右侧面板）
         btn_w = self.panel_width - 40
